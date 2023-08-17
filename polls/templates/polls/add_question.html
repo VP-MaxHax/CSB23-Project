@@ -1,0 +1,10 @@
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <h3>Answer Choices</h3>
+    {{ formset.management_form }}
+    {% for choice_form in formset %}
+        {{ choice_form.choice_text.label_tag }} {{ choice_form.choice_text }}
+    {% endfor %}
+    <button type="submit">Submit Question</button>
+</form>

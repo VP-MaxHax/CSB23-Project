@@ -1,11 +1,13 @@
 from typing import Any
 from django.db.models.query import QuerySet
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
+from .forms import QuestionForm, AnswerChoiceForm, AnswerChoiceFormSet
 from .models import Choice, Question
+from django.forms import inlineformset_factory
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
@@ -56,3 +58,29 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
+    
+def add_question(request):
+    if request.method == 'POST':
+        form = QuestionForm(request.POST)
+        formset = AnswerChoiceFormSet(request.POST, instance=Question())
+
+        if form.is_valid() and formset.is_valid():
+            question = form.save(commit=False)
+            question.pub_date = timezone.now()
+            question.save()
+
+            answer_choices = formset.save(commit=False)
+            for answer_choice in answer_choices:
+                answer_choice.question = question
+                answer_choice.save()
+
+            return redirect('polls:index')  # Redirect to a success page
+    else:
+        form = QuestionForm()
+        formset = AnswerChoiceFormSet(instance=Question())
+
+    return render(
+        request,
+        'polls/add_question.html',
+        {'form': form, 'formset': formset}
+    )
