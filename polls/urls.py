@@ -10,4 +10,5 @@ urlpatterns = [
     path("<int:question_id>/vote/", views.vote, name="vote"),
     path('add_question/', views.add_question, name='add_question'),
     path('search/', views.custom_sql_query, name='search'),
+    path('register/', views.register_user, name='register'),
 ]

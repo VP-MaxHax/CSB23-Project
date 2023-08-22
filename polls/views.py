@@ -99,3 +99,14 @@ def custom_sql_query(request):
         return render(request, "polls/search.html", {"results": results})
     else:
         return render(request, "polls/search.html", {"results": []})
+    
+def register_user(request):
+    name = request.GET.get("name")
+    password = request.GET.get("pass")
+
+    if name and password:
+        with connection.cursor() as cursor:
+            query = 'INSERT INTO users (name, password) VALUES (%s, %s);'
+            cursor.execute(query, (name, password))
+    
+    return render(request, "polls/register.html")
