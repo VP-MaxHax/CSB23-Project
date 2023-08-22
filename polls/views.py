@@ -1,13 +1,16 @@
 from typing import Any
 from django.db.models.query import QuerySet
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from .forms import QuestionForm, AnswerChoiceForm, AnswerChoiceFormSet
-from .models import Choice, Question
+from .models import Choice, Question, Message
 from django.forms import inlineformset_factory
+from django.db import connection
+from django.utils.html import escape
+import sqlite3
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
@@ -84,3 +87,15 @@ def add_question(request):
         'polls/add_question.html',
         {'form': form, 'formset': formset}
     )
+
+def custom_sql_query(request):
+    query = request.GET.get("q", "")
+
+    if query:
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            results = cursor.fetchall()
+
+        return render(request, "polls/search.html", {"results": results})
+    else:
+        return render(request, "polls/search.html", {"results": []})

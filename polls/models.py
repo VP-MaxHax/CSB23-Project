@@ -2,6 +2,7 @@ import datetime
 from django.contrib import admin
 from django.db import models
 from django.utils import timezone
+from django.db import models
 
 
 class Question(models.Model):
@@ -25,3 +26,6 @@ class Choice(models.Model):
     votes = models.IntegerField(default=0)
     def __str__(self):
         return self.choice_text
+    
+class Message(models.Model):
+	content = models.TextField()
