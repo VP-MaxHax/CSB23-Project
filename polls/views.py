@@ -10,7 +10,10 @@ from .models import Choice, Question, Message
 from django.forms import inlineformset_factory
 from django.db import connection
 from django.utils.html import escape
-import sqlite3
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
@@ -110,3 +113,18 @@ def register_user(request):
             cursor.execute(query, (name, password))
     
     return render(request, "polls/register.html")
+
+
+#@csrf_exempt
+#def register_user(request):
+#    if request.method == 'POST':
+#        username = request.POST.get("name")
+#        password = request.POST.get("pass")
+#
+#        if username and password:
+#            user = User.objects.create_user(username=username, password=password)
+#            # You can log the user in after registration if needed
+#            # auth.login(request, user)
+#            return redirect("login")  # Redirect to the login page after registration
+#
+#    return render(request, "polls/register.html")
