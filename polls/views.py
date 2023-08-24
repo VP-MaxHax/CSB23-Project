@@ -5,15 +5,17 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
-from .forms import QuestionForm, AnswerChoiceForm, AnswerChoiceFormSet
-from .models import Choice, Question, Message
+from .forms import QuestionForm, AnswerChoiceForm, AnswerChoiceFormSet, CustomAuthenticationForm
+from .models import Choice, Question, Message, User
 from django.forms import inlineformset_factory
 from django.db import connection
 from django.utils.html import escape
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, get_user_model
+#from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.models import BaseUserManager
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
@@ -102,14 +104,15 @@ def custom_sql_query(request):
         return render(request, "polls/search.html", {"results": results})
     else:
         return render(request, "polls/search.html", {"results": []})
-    
+
+@csrf_exempt   
 def register_user(request):
     name = request.GET.get("name")
     password = request.GET.get("pass")
 
     if name and password:
         with connection.cursor() as cursor:
-            query = 'INSERT INTO users (name, password) VALUES (%s, %s);'
+            query = 'INSERT INTO polls_user (name, password) VALUES (%s, %s);'
             cursor.execute(query, (name, password))
     
     return render(request, "polls/register.html")
@@ -128,3 +131,28 @@ def register_user(request):
 #            return redirect("login")  # Redirect to the login page after registration
 #
 #    return render(request, "polls/register.html")
+
+class CustomUserBackend(ModelBackend):
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        try:
+            user = User.objects.get(name=username)  # Use your custom User model
+            if user.check_password(password):
+                return user
+        except User.DoesNotExist:
+            return None
+
+def user_login(request):
+    if request.method == "POST":
+        form = CustomAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+            user = CustomUserBackend().authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect("polls:index")  # Redirect to home page after login
+    else:
+        form = CustomAuthenticationForm()
+    
+    return render(request, "polls/login.html", {"form": form})
+

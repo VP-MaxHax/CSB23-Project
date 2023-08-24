@@ -130,3 +130,5 @@ AUTHENTICATION_BACKENDS = [
 LOGOUT_REDIRECT_URL = 'polls:index'
 
 LOGIN_REDIRECT_URL = 'polls:index'
+
+AUTH_USER_MODEL = 'polls.User'
