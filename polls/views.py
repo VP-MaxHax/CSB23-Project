@@ -16,6 +16,7 @@ from django.contrib.auth import authenticate, login, get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import BaseUserManager
+from django.contrib.auth.decorators import login_required
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
@@ -93,17 +94,19 @@ def add_question(request):
         {'form': form, 'formset': formset}
     )
 
+@csrf_exempt
 def custom_sql_query(request):
-    query = request.GET.get("q", "")
-
+    query = request.POST.get("q", "")
     if query:
         with connection.cursor() as cursor:
-            cursor.execute(query)
-            results = cursor.fetchall()
+            sql_query = "SELECT id, question_text FROM polls_question WHERE question_text LIKE '%" + query + "%';"
+            cursor.execute(sql_query)
+            search_results = cursor.fetchall()
+            print("Search results:", search_results)
 
-        return render(request, "polls/search.html", {"results": results})
+        return render(request, "polls/index.html", {"search_results": search_results})
     else:
-        return render(request, "polls/search.html", {"results": []})
+        return render(request, "polls/index.html", {"search_results": []})
 
 @csrf_exempt   
 def register_user(request):
@@ -135,7 +138,7 @@ def register_user(request):
 class CustomUserBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         try:
-            user = User.objects.get(name=username)  # Use your custom User model
+            user = User.objects.get(name=username)
             if user.check_password(password):
                 return user
         except User.DoesNotExist:
@@ -150,9 +153,14 @@ def user_login(request):
             user = CustomUserBackend().authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect("polls:index")  # Redirect to home page after login
+                return redirect("polls:success")
     else:
         form = CustomAuthenticationForm()
     
     return render(request, "polls/login.html", {"form": form})
+
+@login_required
+def login_success(request):
+    #raise Exception(request.user)
+    return render(request, 'polls/success.html', {'user': request.user})
 

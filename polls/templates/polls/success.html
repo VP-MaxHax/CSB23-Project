@@ -1,0 +1,19 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'polls/style.css' %}">
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Successful</title>
+</head>
+<body>
+    <h1>Login Successful</h1>
+    <p>Welcome, {{ user }}!</p>
+</body>
+<body>
+    <a href="{% url 'polls:index' %}">Return to polls index</a>
+</body>
+</html>

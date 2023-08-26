@@ -1,12 +1,16 @@
-<form method="GET" action="{% url 'polls:search' %}">
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'polls/style.css' %}">
+
+<form method="POST" action="{% url 'polls:search' %}">
     <input type="text" name="q" placeholder="Enter your search query">
     <button type="submit">Search</button>
 </form>
 
-{% if results %}
+{% if search_results %}
 <ul>
-    {% for result in results %}
-        <li>{{ result }}</li>
+    {% for result in search_results %}
+        <li>{{ result.0 }},{{ result.1 }}</li>
     {% endfor %}
 </ul>
 {% else %}

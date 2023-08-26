@@ -1,3 +1,7 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'polls/style.css' %}">
+
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

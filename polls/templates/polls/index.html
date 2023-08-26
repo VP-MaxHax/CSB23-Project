@@ -1,8 +1,8 @@
 {% load static %}
 
-<a href="{% url 'polls:login' %}">Log In</a>
-
 <link rel="stylesheet" href="{% static 'polls/style.css' %}">
+
+{% include 'polls/navbar.html' %}
 
 <p>Latest questions.</p>
 {% if latest_question_list %}
@@ -15,6 +15,7 @@
     <p>No polls are available.</p>
 {% endif %}
 
-<li><a href="add_question">Add a new question</a></li>
+<p>Search a question.</p>
+{% include 'polls/search.html' %}
 
-<a href="{% url 'polls:logout' %}">Logout</a>
+<li><a href="add_question">Add a new question</a></li>

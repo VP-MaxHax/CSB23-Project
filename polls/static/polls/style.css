@@ -1,9 +1,15 @@
-p {
-    color: darkgray;
-}
-li a {
+li a{
     color: lightblue;
 }
+a{
+    color: lightblue
+}
+
 body {
-    background: rgb(33, 33, 33);
+    background: rgb(49, 49, 49);
+}
+h1, h2, h3, 
+h4, h5, h6, p,
+ label, li{
+    color: darkgray;
 }
