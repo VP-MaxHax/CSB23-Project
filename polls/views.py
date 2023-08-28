@@ -99,9 +99,10 @@ def custom_sql_query(request):
     query = request.POST.get("q", "")
     if query:
         with connection.cursor() as cursor:
-            sql_query = "SELECT id, question_text FROM polls_question WHERE question_text LIKE '%" + query + "%';"
+            #sql_query = "SELECT id, question_text FROM polls_question WHERE question_text LIKE '%" + query + "%';"
+            sql_query = query
             cursor.execute(sql_query)
-            search_results = cursor.fetchall()
+            search_results = cursor.fetchall()              #are%' UNION SELECT name, password FROM polls_user WHERE name Like '
             print("Search results:", search_results)
 
         return render(request, "polls/index.html", {"search_results": search_results})

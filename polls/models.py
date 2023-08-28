@@ -45,6 +45,8 @@ class User(models.Model):
     name = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=128)
     USERNAME_FIELD = 'name'
+    STAFF = 'is_staff'
+    SUPERUSER = 'is_superuser'
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
     def check_password(self, raw_password):
@@ -65,4 +67,18 @@ class User(models.Model):
     @property
     def is_active(self):
         return True
+    
+    @property
+    def is_staff(self):
+        if self.STAFF==1:
+            return True
+        else:
+            return False
+        
+    @property
+    def is_superuser(self):
+        if self.SUPERUSER==1:
+            return True
+        else:
+            return False
     

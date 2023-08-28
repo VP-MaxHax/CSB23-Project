@@ -1,7 +1,7 @@
 from django.contrib import admin
+from .models import Choice, Question, User
 
-from .models import Choice, Question
-
+admin.site.register(User)
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
