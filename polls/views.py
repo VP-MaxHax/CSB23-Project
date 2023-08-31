@@ -99,11 +99,21 @@ def custom_sql_query(request):
     query = request.POST.get("q", "")
     if query:
         with connection.cursor() as cursor:
-            #sql_query = "SELECT id, question_text FROM polls_question WHERE question_text LIKE '%" + query + "%';"
-            sql_query = query
-            cursor.execute(sql_query)
+            
+            #Fix3: injection
+            #---------------------------------------------
+            #search='%'
+            #search+=query
+            #search+='%'
+            #sql_query = "SELECT id, question_text FROM polls_question WHERE question_text LIKE (%s);"
+            #cursor.execute(sql_query, (search,))
+            #search_results = cursor.fetchall() 
+            #----------------------------------------------
+
+            sql_query = "SELECT id, question_text FROM polls_question WHERE question_text LIKE '%" + query + "%';"
+            #sql_query = query
+            cursor.execute(sql_query)                       #Query exploiting the injection vulnerability below if you want to test it.
             search_results = cursor.fetchall()              #are%' UNION SELECT name, password FROM polls_user WHERE name Like '
-            print("Search results:", search_results)
 
         return render(request, "polls/index.html", {"search_results": search_results})
     else:
