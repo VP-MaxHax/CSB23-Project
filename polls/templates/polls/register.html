@@ -1,4 +1,9 @@
-<form method="GET" action="{% url 'polls:register' %}">
+<form method="POST" action="{% url 'polls:register' %}">
+    <!--Fix5: CSRF missing.
+    --------------------------------------------------------------
+    To enable csrf protection, send the csrf token with the post with comman below.
+    {% csrf_token %}
+    --------------------------------------------------------------->
     <input type="text" name="name" placeholder="Enter your name">
     <input type="text" name="pass" placeholder="Enter your password">
     <button type="submit">Register</button>

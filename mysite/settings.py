@@ -127,11 +127,11 @@ LOGOUT_REDIRECT_URL = 'polls:index'
 
 LOGIN_REDIRECT_URL = 'polls:index'
 
-AUTH_USER_MODEL = 'polls.User'
+#AUTH_USER_MODEL = 'polls.User'
 
 #FIX 1,2,4,5
 #remove eveverything from below to disable the custom user handling.
-AUTHENTICATION_BACKENDS = [
-    'mysite.custom_auth_backend.CustomAuthBackend',
-    'django.contrib.auth.backends.ModelBackend',
-]
+#AUTHENTICATION_BACKENDS = [
+#    'mysite.custom_auth_backend.CustomAuthBackend',
+#    'django.contrib.auth.backends.ModelBackend',
+#]

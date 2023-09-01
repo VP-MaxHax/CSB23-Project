@@ -6,13 +6,13 @@ from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from .forms import QuestionForm, AnswerChoiceForm, AnswerChoiceFormSet, CustomAuthenticationForm
-from .models import Choice, Question, Message, User
+from .models import Choice, Question, Message#, User
 from django.forms import inlineformset_factory
 from django.db import connection
 from django.utils.html import escape
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login, get_user_model
-#from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import BaseUserManager
@@ -119,32 +119,35 @@ def custom_sql_query(request):
     else:
         return render(request, "polls/index.html", {"search_results": []})
 
-@csrf_exempt   
-def register_user(request):
-    name = request.GET.get("name")
-    password = request.GET.get("pass")
-
-    if name and password:
-        with connection.cursor() as cursor:
-            query = 'INSERT INTO polls_user (name, password) VALUES (%s, %s);'
-            cursor.execute(query, (name, password))
-    
-    return render(request, "polls/register.html")
-
-
-#@csrf_exempt
+#@csrf_exempt   
 #def register_user(request):
-#    if request.method == 'POST':
-#        username = request.POST.get("name")
-#        password = request.POST.get("pass")
+#    name = request.POST.get("name")
+#    password = request.POST.get("pass")
 #
-#        if username and password:
-#            user = User.objects.create_user(username=username, password=password)
-#            # You can log the user in after registration if needed
-#            # auth.login(request, user)
-#            return redirect("login")  # Redirect to the login page after registration
-#
+#    if name and password:
+#        with connection.cursor() as cursor:
+#            query = 'INSERT INTO polls_user (name, password) VALUES (%s, %s);'
+#            cursor.execute(query, (name, password))
+#    
 #    return render(request, "polls/register.html")
+
+#Fix5: CSRF missing.
+#--------------------------------------------------------------
+#To enable csrf protections remove the "csrf_exempt" propery
+#@csrf_exempt
+#---------------------------------------------------------------
+def register_user(request):
+    if request.method == 'POST':
+        username = request.POST.get("name")
+        password = request.POST.get("pass")
+
+        if username and password:
+            user = User.objects.create_user(username=username, password=password)
+            # You can log the user in after registration if needed
+            # auth.login(request, user)
+            return redirect("polls:login")  # Redirect to the login page after registration
+
+    return render(request, "polls/register.html")
 
 class CustomUserBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
