@@ -30,55 +30,54 @@ class Choice(models.Model):
 class Message(models.Model):
 	content = models.TextField()
         
-#class CustomUserManager(BaseUserManager):
-#  def create_user(self, name, password=None, **extra_fields):
-#      if not name:
-#          raise ValueError("The Name field must be set")
-#      user = self.model(name=name, **extra_fields)
-#      user.set_password(password)
-#      user.save(using=self._db)
-#      return user
-#  def get_by_natural_key(self, name):
-#      return self.get(name=name)
-#        
-#class User(models.Model):
-#    name = models.CharField(max_length=100, unique=True)
-#    password = models.CharField(max_length=128)
-#    USERNAME_FIELD = 'name'
-#    STAFF = 'is_staff'
-#    SUPERUSER = 'is_superuser'
-#    REQUIRED_FIELDS = []
-#    objects = CustomUserManager()
-#    def check_password(self, raw_password):
-#        # Implement your password comparison logic
-#        return raw_password == self.password
-#    
-#    def __str__(self):
-#        return self.name
-#
-#    @property
-#    def is_anonymous(self):
-#        return False
-#
-#    @property
-#    def is_authenticated(self):
-#        return True
-#    
-#    @property
-#    def is_active(self):
-#        return True
-#    
-#    @property
-#    def is_staff(self):
-#        if self.STAFF==1:
-#            return True
-#        else:
-#            return False
-#        
-#    @property
-#    def is_superuser(self):
-#        if self.SUPERUSER==1:
-#            return True
-#        else:
-#            return False
-#    
+class CustomUserManager(BaseUserManager):
+  def create_user(self, username, password=None, **extra_fields):
+      if not username:
+          raise ValueError("The Name field must be set")
+      user = self.model(username=username, **extra_fields)
+      user.set_password(password)
+      user.save(using=self._db)
+      return user
+  def get_by_natural_key(self, username):
+      return self.get(username=username)
+        
+class User(models.Model):
+    username = models.CharField(max_length=100, unique=True)
+    password = models.CharField(max_length=128)
+    USERNAME_FIELD = 'username'
+    STAFF = 'is_staff'
+    SUPERUSER = 'is_superuser'
+    REQUIRED_FIELDS = []
+    objects = CustomUserManager()
+    def check_password(self, raw_password):
+        return raw_password == self.password
+    
+    def __str__(self):
+        return self.username
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    @property
+    def is_authenticated(self):
+        return True
+    
+    @property
+    def is_active(self):
+        return True
+    
+    @property
+    def is_staff(self):
+        if self.STAFF==1:
+            return True
+        else:
+            return False
+        
+    @property
+    def is_superuser(self):
+        if self.SUPERUSER==1:
+            return True
+        else:
+            return False
+    

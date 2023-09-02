@@ -1,10 +1,21 @@
-<form method="POST" action="{% url 'polls:register' %}">
-    <!--Fix5: CSRF missing.
-    --------------------------------------------------------------
-    To enable csrf protection, send the csrf token with the post with comman below.
-    {% csrf_token %}
-    --------------------------------------------------------------->
-    <input type="text" name="name" placeholder="Enter your name">
-    <input type="text" name="pass" placeholder="Enter your password">
-    <button type="submit">Register</button>
-</form>
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'polls/style.css' %}">
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+</head>
+<body>
+    <h2>Register a new user</h2>
+    <form method="POST" action="{% url 'polls:register' %}">
+        <!--Fix5: CSRF missing.
+        --------------------------------------------------------------
+        To enable csrf protection, send the csrf token with the post with comman below.
+        {% csrf_token %}
+        --------------------------------------------------------------->
+        <input type="text" name="name" placeholder="Enter your name">
+        <input type="text" name="pass" placeholder="Enter your password">
+        <button type="submit">Register</button>
+    </form>

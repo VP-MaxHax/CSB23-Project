@@ -6,17 +6,18 @@ from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from .forms import QuestionForm, AnswerChoiceForm, AnswerChoiceFormSet, CustomAuthenticationForm
-from .models import Choice, Question, Message#, User
+from .models import Choice, Question, Message, User
+#from django.contrib.auth.models import User
 from django.forms import inlineformset_factory
 from django.db import connection
 from django.utils.html import escape
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login, get_user_model
-from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.decorators import login_required
+from datetime import datetime
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
@@ -51,7 +52,6 @@ def vote(request, question_id):
     try:
         selected_choice = question.choice_set.get(pk=request.POST["choice"])
     except (KeyError, Choice.DoesNotExist):
-        # Redisplay the question voting form.
         return render(
             request,
             "polls/detail.html",
@@ -63,9 +63,6 @@ def vote(request, question_id):
     else:
         selected_choice.votes += 1
         selected_choice.save()
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
         return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
     
 def add_question(request):
@@ -83,7 +80,7 @@ def add_question(request):
                 answer_choice.question = question
                 answer_choice.save()
 
-            return redirect('polls:index')  # Redirect to a success page
+            return redirect('polls:index')
     else:
         form = QuestionForm()
         formset = AnswerChoiceFormSet(instance=Question())
@@ -100,7 +97,7 @@ def custom_sql_query(request):
     if query:
         with connection.cursor() as cursor:
             
-            #Fix3: injection
+            #Fix3: injection: Enable lines 106-111. Disable lines 114-117
             #---------------------------------------------
             #search='%'
             #search+=query
@@ -119,43 +116,64 @@ def custom_sql_query(request):
     else:
         return render(request, "polls/index.html", {"search_results": []})
 
-#@csrf_exempt   
-#def register_user(request):
-#    name = request.POST.get("name")
-#    password = request.POST.get("pass")
-#
-#    if name and password:
-#        with connection.cursor() as cursor:
-#            query = 'INSERT INTO polls_user (name, password) VALUES (%s, %s);'
-#            cursor.execute(query, (name, password))
-#    
-#    return render(request, "polls/register.html")
-
-#Fix5: CSRF missing.
-#--------------------------------------------------------------
-#To enable csrf protections remove the "csrf_exempt" propery
-#@csrf_exempt
-#---------------------------------------------------------------
+@csrf_exempt   
 def register_user(request):
-    if request.method == 'POST':
-        username = request.POST.get("name")
-        password = request.POST.get("pass")
+    username = request.POST.get("name")
+    password = request.POST.get("pass")
 
-        if username and password:
-            user = User.objects.create_user(username=username, password=password)
-            # You can log the user in after registration if needed
-            # auth.login(request, user)
-            return redirect("polls:login")  # Redirect to the login page after registration
-
+    if username and password:
+        with connection.cursor() as cursor:
+            query = 'INSERT INTO polls_user (username, password) VALUES (%s, %s);'
+            cursor.execute(query, (username, password))
+            user = CustomUserBackend().authenticate(request, username=username, password=password) 
+            login(request, user)
+            return redirect("polls:success")
+    
     return render(request, "polls/register.html")
+
+
+#Fix2: 2. Cryptographic Failures
+#----------------------------------------------------------------------------------------
+#Custom user registering above stores passwords on plain text.
+#Delete it (lines 123-133) and enable the register user fuction below (lines 147-168) to enable djangos own user creation system to take over
+#Also remove User from .models import (Line 9) and enable djangos own user model (Line 10)
+#Lastly from mysite/settings.py remove everything below line 130
+#
+#
+#        ##Fix5: CSRF missing.
+#        ##--------------------------------------------------------------
+#        ##To enable csrf protection remove the "csrf_exempt"
+#@csrf_exempt
+#       ##---------------------------------------------------------------
+#def register_user(request):
+#    if request.method == 'POST':
+#        username = request.POST.get("name")
+#        password = request.POST.get("pass")
+#        if username and password:
+#            #4. Identification and Authentication Failures (lines 156-161)
+#            #---------------------------------------------------
+#            #passok=True
+#            #candidates = [p.strip() for p in open('candidates.txt')]
+#            #for i in candidates:
+#            #    if password==i:
+#            #        passok=False
+#            #if passok:
+#            #-----------------------------------------------------
+#                user = User.objects.create_user(username=username, password=password)
+#                #log_event(username, "register", 1)
+#                return redirect("polls:login")
+#        #if username is not "":
+#        #    log_event(username, "register", 0)
+#    return render(request, "polls/register.html")
+#-------------------------------------------------------------------------------
 
 class CustomUserBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         try:
-            user = User.objects.get(name=username)
+            user = User.objects.get(username=username)
             if user.check_password(password):
                 return user
-        except User.DoesNotExist:
+        except User.DoesNotExist: 
             return None
 
 def user_login(request):
@@ -164,13 +182,16 @@ def user_login(request):
         if form.is_valid():
             username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
-            user = CustomUserBackend().authenticate(request, username=username, password=password)
+            user = CustomUserBackend().authenticate(request, username=username, password=password)    
             if user is not None:
+                #log_event(username, "login", 1)
                 login(request, user)
                 return redirect("polls:success")
+        elif not form.is_valid() and form.cleaned_data["username"] is not "":
+            username = form.cleaned_data["username"]
+            #log_event(username, "login", 0)
     else:
         form = CustomAuthenticationForm()
-    
     return render(request, "polls/login.html", {"form": form})
 
 @login_required
@@ -178,3 +199,14 @@ def login_success(request):
     #raise Exception(request.user)
     return render(request, 'polls/success.html', {'user': request.user})
 
+
+#Fix 1. Security Logging and Monitoring Failures.
+#log_event function (lines 208-212) makes an insert into "log" log table for every login and registration attempt with an username field filled.
+#Also enable the log_event calls inside register_user and user_login functions (Lines:164, 166, 167, 188, 193)
+#---------------------------------------------------------------------------------
+#def log_event(username, event, succesfull):
+#    time = datetime.now()
+#    with connection.cursor() as cursor:
+#        query = 'INSERT INTO log (username, event, successfull, time) VALUES (%s, %s, %s, %s);'
+#        cursor.execute(query, (username, event, succesfull, time))
+#--------------------------------------------------------------------------------------
